@@ -62,7 +62,7 @@ class Screen
     self.buffer    = self.header
     self.buffer   += text
     current_height = self.buffer.lines.count
-    self.buffer   += add_lines(height_for_footer-current_height)
+    self.buffer   += add_lines(height_for_footer-current_height+1)
     self.buffer   += self.footer
     self.buffer   += "\n"
   end
