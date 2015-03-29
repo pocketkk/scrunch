@@ -5,7 +5,7 @@ require 'cursor'
 
 class Window
 
-	attr_accessor :width, :height, :mode, :cursor, :document
+	attr_accessor :width, :height, :mode, :cursor, :document, :text
 
 	def initialize(document=Document.new)
 		self.height = 0
@@ -18,16 +18,26 @@ class Window
 
 	def limit_x
 		case self.mode
-			when :normal  then self.document.width(self.cursor.y).width
-			when :command then self.width
+			when :normal  then self.document.width(self.cursor.y)
+			when :command then self.width - 1
 		end
 	end
 
 	def limit_y
 		case self.mode
 			when :normal  then self.document.height
-			when :command then self.height
+			when :command then self.height - 1
 		end
+	end
+
+	def footer
+		""
+	end
+
+	def header
+		t = align_right(show_cursor_pos, {:absolute => true})
+  		t += add_lines(self.height - t.lines.count)
+  		t
 	end
 
 	def get_window_size
@@ -35,13 +45,41 @@ class Window
     	self.width = TermInfo.screen_size[1]
   	end
 
+  	def render
+  		text = ""
+  		text +=
+  	end
+
+  	def add_lines(num)
+  		text = ""
+  		num.times { text += "\n" }
+  		text
+  	end
+
+  	def show_cursor_pos
+  		"x: #{self.cursor.x} y: #{self.cursor.y} "
+  	end
+
+  	def align_right(text, opts={})
+  		if opts[:absolute] then
+  			text.prepend(add_padding(self.width - text.length))
+  		else
+  			text.prepend(add_padding(limit_x - text.length))
+  		end
+  	end
+
+  	def add_padding(num)
+  		text = ""
+  		num.times { text += " " }
+  		text
+  	end
+
   	def map
 	    m = Dispel::StyleMap.new(self.height)
 	    # add map for header
-	    height_for_footer = self.height > 3 ? self.height - 1 : 0
 	    m.add(['#272822','#a6e22e'], 0, 0..width+1)
 	    # add map for footer
-	    m.add(['#272822','#a6e22e'], height_for_footer, 0..width+1)
+	    m.add(['#272822','#a6e22e'], self.height - 1, 0..width-1)
 	    m
 	end
 
@@ -67,7 +105,7 @@ class Window
   	#Window show is essentially the loop
   	def show
 	    Dispel::Screen.open(:colors => true) do |screen|
-	      screen.draw "", map, [self.cursor.y, self.cursor.x]
+	      screen.draw show_text, map, [self.cursor.y, self.cursor.x]
 	      Dispel::Keyboard.output do |key|
 	        case key
 	        	when :down 			then self.cursor.down
@@ -79,7 +117,7 @@ class Window
 	        	when :escape		then self.change_mode
 	        	when :enter 		then break
 	        end
-	        screen.draw "", map, [self.cursor.y, self.cursor.x]
+	        screen.draw show_text, map, [self.cursor.y, self.cursor.x]
 	      end
 	    end
 	end

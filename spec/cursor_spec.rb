@@ -5,7 +5,7 @@ describe Cursor do
   let(:cursor) { Window.new.cursor }
   
   before(:each) do
-  	cursor.window.mode = :command
+  	cursor.window.mode = :command #Set to command mode so it will use the window size for testing
   	cursor.window.height = 10
   	cursor.window.width = 20
   end
@@ -50,7 +50,6 @@ describe Cursor do
   end
 
   it 'cursor#down should not exceed window height' do
-  	cursor.window.height = 10
   	cursor.down(21)
   	expect(cursor.y).to eq(10)
   end
@@ -66,7 +65,6 @@ describe Cursor do
   end
 
   it 'cursor#right should never exceed window width' do
-  	cursor.window.width = 10
   	cursor.right(21)
   	expect(cursor.x).to eq(10)
   end

@@ -16,11 +16,11 @@ class Cursor
 	end
 
 	def down(num = 1)
-		num.times { self.y += 1 unless self.y == self.window.limit_y-1 }
+		num.times { self.y += 1 unless self.y == self.window.limit_y }
 	end
 
 	def right(num = 1)
-		num.times { self.x += 1 unless self.x == self.window.limit_x-1 }
+		num.times { self.x += 1 unless self.x == self.window.limit_x }
 	end
 
 	def left(num = 1)

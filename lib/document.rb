@@ -10,8 +10,9 @@ class Document
 	end
 
 	def width(num)
-		if self.text.lines.count >= num then
-			return self.text.lines[num-1].sub("\n","").length
+		val = 0
+		if self.text.lines.count > num then
+			val = self.text.lines[num-1].sub("\n","").length
 		else
 			return 0
 		end
