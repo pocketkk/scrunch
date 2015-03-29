@@ -1,14 +1,14 @@
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
-require 'screen'
+Dir["./lib/*.rb"].each { |f| require(f) }
 
 class Scrunch
-  attr_accessor :file_name, :document, :new_file, :screen, :footer
+  attr_accessor :file_name, :document, :new_file, :window, :footer
 
   def initialize
     @document = ""
-    @screen = Screen.new
+    @window = Window.new
     new_file = false
     footer = ""
   end
@@ -18,7 +18,7 @@ class Scrunch
     save(file_name)
     self.footer = file_name
     new_file = true
-    @screen.display(@document)
+    @window.display(@document)
   end
   
   def open(file_name)
@@ -27,7 +27,7 @@ class Scrunch
     @document = ""
     File.open(file_name, "r") { |file| file.each_line { |line| @document += line } }
     footer = file_name
-    @screen.display(@document)
+    #@window.display(@document)
   end
 
   def save(file_name)
