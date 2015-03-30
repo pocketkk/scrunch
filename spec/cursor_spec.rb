@@ -2,7 +2,7 @@ Dir["./lib/*.rb"].each { |f| load(f) }
 
 describe Cursor do
   
-  let(:cursor) { Window.new.cursor }
+  let(:cursor) { Window.new(Document.new, test: true).cursor }
   
   before(:each) do
   	cursor.window.mode = :command #Set to command mode so it will use the window size for testing
@@ -85,6 +85,10 @@ describe Cursor do
   	cursor.x = 10
   	cursor.left(21)
   	expect(cursor.x).to eq(0)
+  end
+
+  it 'cursor#up' do
+
   end
 
 end
