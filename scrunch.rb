@@ -27,7 +27,7 @@ class Scrunch
     @document = ""
     File.open(file_name, "r") { |file| file.each_line { |line| @document += line } }
     footer = file_name
-    #@window.display(@document)
+    @window.display(@document)
   end
 
   def save(file_name)

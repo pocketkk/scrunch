@@ -58,15 +58,7 @@ class Document
 	end
 
 	def lines(from:, to:)
-		temp = ""
-		count = 0
-		self.text.lines.each do |line|
-			if count >= from && count <= to then
-				temp += line
-			end
-			count += 1
-		end
-		temp
+		self.text.lines[from..to]
 	end
 
 end
