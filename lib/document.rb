@@ -1,6 +1,13 @@
 class Document
 	attr_accessor :text
 
+	def self.test_doc
+		temp = ""
+		40.times { |x| temp += "#{x}\n" }
+		temp
+		Document.new(temp)
+	end
+
 	def initialize(text = "")
 		self.text = text
 	end
@@ -19,7 +26,6 @@ class Document
 	end
 	
 	def insert(key:, x:, y:)
-		y = y #header line needs to be deducted before calling method
 		temp = ""
 		count = 0
 		lines = self.text.lines
@@ -35,7 +41,23 @@ class Document
 		self.text = temp
 	end
 
-	def lines(from, to)
+	def remove(x:, y:)
+		temp = ""
+		count = 0
+		lines = self.text.lines
+		lines.each do |line|
+			if count == y then
+				line[x] = ""
+				temp += line
+			else
+				temp += line
+			end
+			count += 1
+		end
+		self.text = temp
+	end
+
+	def lines(from:, to:)
 		temp = ""
 		count = 0
 		self.text.lines.each do |line|
