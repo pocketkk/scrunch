@@ -8,7 +8,6 @@ class Scrunch
 
   def initialize
     @document = ""
-    @window = Window.new
     new_file = false
     footer = ""
   end
@@ -24,10 +23,11 @@ class Scrunch
   def open(file_name)
     #clear the contents of the document
     new_file = false
-    @document = ""
-    File.open(file_name, "r") { |file| file.each_line { |line| @document += line } }
-    footer = file_name
-    @window.display(@document)
+    my_doc = Document.new
+    File.open(file_name, "r") { |file| file.each_line { |line| my_doc.text += line } }
+    my_doc.file_name = file_name
+    window = Window.new(my_doc)
+    window.show
   end
 
   def save(file_name)

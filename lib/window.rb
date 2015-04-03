@@ -7,13 +7,36 @@ class Window
 
 	include HasCursor
 	include HasKeyboard
+	include RubyPatterns
+
+	BLUE   = "#66D9EF"
+	GREEN  = "#A6E22E"
+	RED    = "#F92672"
+	BROWN  = "#272822"
+	ORANGE = "#FD971F"
 
 	attr_accessor :width, :height, :mode, :cursor, :document, :buffer, :arguments, :command,
-				  :document_y_offset, :document_x_offset, :margin_left_width, :border_width
+				  :document_y_offset, :document_x_offset, :margin_left_width, :border_width, :decorations
 
 	def self.test
 		Window.new(Document.test_doc)
 	end
+
+	def two_dimensional_array(num)
+		Array.new(num) { Array.new(2) }
+	end
+
+	def substring_positions(substring, string)
+		array_of_indexes = string.enum_for(:scan, substring).map { $~.offset(0)[0] }
+		substrings = two_dimensional_array(array_of_indexes.count)
+		array_of_indexes.each_with_index do |value, index|
+			substrings[index][0] = value
+			substrings[index][1] = substring.chars.count + value - 1
+		end
+		substrings
+	end
+
+	keywords = %w[]
 
 	def initialize(document=Document.new, **args)
 		height = 0
@@ -33,6 +56,8 @@ class Window
 
 	def header
 		temp = align_right(show_cursor_pos, absolute: true) + "\n"
+		temp[0..document.file_name.chars.count-1] = document.file_name unless document.file_name.empty?
+		temp
 	end
 
 	def margin_left
@@ -107,23 +132,22 @@ class Window
   	end
 
   	def map_for_margin_left(m)
-
   		m
   	end
 
   	def map
-	    m = Dispel::StyleMap.new(height)
+	    decorations = Dispel::StyleMap.new(height)
 	    # add map for header
-	    m.add(['#272822','#a6e22e'], 0, 0..width+1)
+	    decorations.add(['#272822','#a6e22e'], 0, 0..width+1)
 	    # add map for footer
-	    m.add(['#272822','#a6e22e'], height - footer.lines.count, 0..width-1)
+	    decorations.add(['#272822','#a6e22e'], height - footer.lines.count, 0..width-1)
   		body_height.times do |num|
-  			m.add(['#7d7d7d', '#000000',], num + header.lines.count, 0..margin_left_width - border_width - 1)
+  			decorations.add(['#7d7d7d', '#000000',], num + header.lines.count, 0..margin_left_width - border_width - 1)
   		end
   		body_height.times do |num|
-  			m.add(['#050505', '#050505',], num + header.lines.count, margin_left_width - border_width..margin_left_width - border_width)
+  			decorations.add(['#050505', '#050505',], num + header.lines.count, margin_left_width - border_width..margin_left_width - border_width)
   		end
-	    m
+	    decorations
 	end
 
 	def change_mode
@@ -153,8 +177,6 @@ class Window
 	end
 end
 
-
-w = Window.test.show
 
 
 

@@ -1,5 +1,5 @@
 class Document
-	attr_accessor :text
+	attr_accessor :text, :file_name
 
 	def self.test_doc
 		temp = ""
@@ -8,8 +8,9 @@ class Document
 		Document.new(temp)
 	end
 
-	def initialize(text = "")
+	def initialize(text="", filename="")
 		self.text = text
+		self.file_name = filename
 	end
 
 	def height
