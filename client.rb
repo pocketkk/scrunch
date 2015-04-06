@@ -7,6 +7,20 @@ require 'open-uri'
 require 'ap'
 require 'screen'
 
+class Test
+
+  def initialize
+    x = 1
+    y = 4
+    z = 4
+  end
+
+  def new_method
+    This is the new
+  end
+
+end
+
 class GoogleNews
 
   @headlines = []

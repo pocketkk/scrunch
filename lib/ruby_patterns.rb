@@ -45,6 +45,7 @@ module RubyPatterns  # :nodoc: all
     | <=?>? | >=?   # comparison, rocket operator
     | ===? | =~     # simple equality, case equality, match
     | ![~=@]?       # negation with and without at sign, not-equal and not-match
+    | [+=]?
   /ox
   METHOD_SUFFIX = / (?: [?!] | = (?![~>]|=(?!>)) ) /x
   METHOD_NAME_EX = / #{IDENT} #{METHOD_SUFFIX}? | #{METHOD_NAME_OPERATOR} /ox
@@ -75,7 +76,7 @@ module RubyPatterns  # :nodoc: all
   NUMERIC = / (?: (?=0) (?: #{OCTAL} | #{HEXADECIMAL} | #{BINARY} ) | #{FLOAT_OR_INT} ) /ox
   
   SYMBOL = /
-    :
+    [^:]:
     (?:
       #{METHOD_NAME_EX}
     | #{PREFIX_VARIABLE}

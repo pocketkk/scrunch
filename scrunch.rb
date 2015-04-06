@@ -4,12 +4,10 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 Dir["./lib/*.rb"].each { |f| require(f) }
 
 class Scrunch
-  attr_accessor :file_name, :document, :new_file, :window, :footer
+  attr_accessor :file_name, :window, :footer
 
   def initialize
-    @document = ""
     new_file = false
-    footer = ""
   end
 
   def create(file_name="")
@@ -17,21 +15,20 @@ class Scrunch
     save(file_name)
     self.footer = file_name
     new_file = true
-    @window.display(@document)
   end
   
   def open(file_name)
     #clear the contents of the document
-    new_file = false
-    my_doc = Document.new
-    File.open(file_name, "r") { |file| file.each_line { |line| my_doc.text += line } }
-    my_doc.file_name = file_name
-    window = Window.new(my_doc)
-    window.show
+    document = Document.new(scrunch: self, file_name: file_name, text: "")
+    File.open(file_name, "r") { |file| file.each_line { |line| document.text += line } }
+    document.file_name = file_name
+    self.window = Window.new(document: document)
+    self.window.show
   end
 
-  def save(file_name)
-    File.open(file_name,"w") { |file| file.write(@document) }
+  def save(document:)
+    File.open(document.file_name,"w") { |file| file.write(document.text) }
+    self.window.message = "SAVED: #{document.file_name}"
   end
 
   def document
@@ -44,6 +41,8 @@ class Scrunch
 
 end
 
+# s = Scrunch.new
+# s.open('scrunch.rb')
 
 # class GoogleNews
 

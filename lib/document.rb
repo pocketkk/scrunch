@@ -1,5 +1,5 @@
 class Document
-	attr_accessor :text, :file_name
+	attr_accessor :text, :file_name, :scrunch
 
 	def self.test_doc
 		temp = ""
@@ -8,9 +8,19 @@ class Document
 		Document.new(temp)
 	end
 
-	def initialize(text="", filename="")
+	def initialize(scrunch:, text: "", file_name: "")
 		self.text = text
-		self.file_name = filename
+		self.file_name = file_name
+		self.scrunch = scrunch
+	end
+
+	def save
+		self.scrunch.save(document: self)
+	end
+
+	def save_as(file_name:)
+		self.file_name = file_name
+		self.scrunch.save(document: self)
 	end
 
 	def height
