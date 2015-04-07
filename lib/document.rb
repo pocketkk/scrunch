@@ -72,4 +72,8 @@ class Document
 		self.text.lines[from..to]
 	end
 
+	def line(num:)
+		self.text.lines[num]
+	end
+
 end

@@ -144,6 +144,8 @@ module HasKeyboard
 				else
 					self.cursor.down
 					self.cursor.x = margin_left_width
+					process_unindent_line(line: document_y - 1)
+					return_tabs(line: document_y - 1).times { process_key(key: :space) }
 				end
 			else self.cursor.right
 		end

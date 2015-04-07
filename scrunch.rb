@@ -4,17 +4,21 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 Dir["./lib/*.rb"].each { |f| require(f) }
 
 class Scrunch
-  attr_accessor :file_name, :window, :footer
+  attr_accessor :file_name, :window, :footer, :documents
 
   def initialize
     new_file = false
+    self.documents = []
+  end
+
+  def add_document(doc:)
+    documents << doc
   end
 
   def create(file_name="")
-    self.file_name = file_name
-    save(file_name)
-    self.footer = file_name
-    new_file = true
+    document = Document.new(scrunch: self, file_name: file_name, text: " \n")
+    self.window = Window.new(document: document)
+    save(document: document)
   end
   
   def open(file_name)

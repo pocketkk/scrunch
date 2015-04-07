@@ -93,7 +93,7 @@ class GoogleNews
     value += wrap(story.snippet, 5, 70)
   end
 
-  def show()
+  def show
     @stories.each do |story|
       @screen.display(view_story(story))
     end

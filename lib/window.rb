@@ -93,8 +93,8 @@ class Window
 		add_decoration(pattern: pattern_numeric, text: text, color: ORANGE, row: row)
 		add_decoration(pattern: pattern_method_names, text: text, color: GREEN, row: row)
 		add_decoration(pattern: pattern_class, text: text, color: BLUE, row: row)
-		add_decoration(pattern: pattern_double_quote_string, text: text, color: YELLOW, row: row)
-		add_decoration(pattern: pattern_single_quote_string, text: text, color: YELLOW, row: row)
+		#add_decoration(pattern: pattern_double_quote_string, text: text, color: YELLOW, row: row)
+		add_decoration(pattern: pattern_quote_string, text: text, color: YELLOW, row: row)
 		#add_decoration(pattern: pattern_variable, text: text, color: ORANGE, row: row)
 		add_decoration(pattern: pattern_comment, text: text, color: GREY, row: row)
 	end
