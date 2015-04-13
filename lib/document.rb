@@ -68,6 +68,14 @@ class Document
 		self.text = temp
 	end
 
+	def remove_line(y:)
+		temp = ""
+		self.text.lines.each_with_index do |line, count|
+			temp += line unless count == y
+		end
+		self.text = temp
+	end
+
 	def lines(from:, to:)
 		self.text.lines[from..to]
 	end

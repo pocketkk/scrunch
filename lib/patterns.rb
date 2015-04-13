@@ -106,6 +106,10 @@ module Patterns
 		/(([ ]+\n)|(\^\n))/
 	end
 
+	def pattern_whole_line
+		/((?<=\s|^|\().+(?=$))/
+	end
+
 	def blank?(string:)
 		!string.match(pattern_blank_line).nil?
 	end

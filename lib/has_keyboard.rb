@@ -47,22 +47,73 @@ module HasKeyboard
 	end
 
 	EXECUTE_KEYS = %w[h i j k i]
+	COMMAND_KEYS = %w[d]
+
+	DELETE 					= /((?<=^)dd(?=$))/
+	DELETE_X_LINES_DOWN 	= /((?<=^)d([1-9])k(?=$))/
+	DELETE_X_LINES_UP 		= /((?<=^)d([1-9])j(?=$))/
+	DELETE_X_CHARS_RIGHT 	= /((?<=^)d([1-9])l(?=$))/
+	DELETE_X_CHARS_LEFT 	= /((?<=^)d([1-9])h(?=$))/
 
 	def process_key_master(key:)
+		self.keystack ||= Array.new
+		if self.keystack.count > 3 then
+			self.keystack = Array.new
+		end
+
 		common_keys(key: key)
-		case key
-			when "h", :left		then
-				cursor.left(keystack_pop)
-				return false
-			when "l", :right	then 
-				cursor.right(keystack_pop)
-				return false
-			when "j", :up		then up
-			when "k", :down		then down
-			when "i" 			then self.mode = :normal
-			else add_key(key: key)
+		add_key(key: key)
+
+		if keystack.join('').match(DELETE)
+			delete_lines(num: 1, y: document_y)
+			self.keystack = []
+		end
+		if match = keystack.join('').match(DELETE_X_LINES_DOWN)
+			delete_lines(num: match.to_a[2].to_i, y: document_y)
+			self.keystack = []
 		end
 		return true
+		# case key
+		# 	when "h", :left		then
+		# 		cursor.left(keystack_pop)
+		# 		return false
+		# 	when "l", :right	then 
+		# 		cursor.right(keystack_pop)
+		# 		return false
+		# 	when "j", :up		then
+		# 		if self.keystack.count == 0
+		# 			up
+		# 		else
+		# 			add_key(key: key)
+		# 			if keystack && keystack.count > 1 then
+		# 				keystack_process
+		# 			end
+		# 		end
+		# 	when "k", :down		then
+		# 		self.keystack ||= Array.new
+		# 		if self.keystack.count == 0
+		# 			down
+		# 		else
+		# 			add_key(key: key)
+		# 			if keystack && keystack.count > 1 then
+		# 				keystack_process
+		# 			end
+		# 		end
+		# 	when "i" 			then self.mode = :normal
+		# 	when "d"			then 
+		# 		 add_key(key: key)
+		# 		 if keystack && keystack.count > 1 then
+		# 		 	keystack_process
+		# 		end
+		# 	else add_key(key: key)
+		# end
+		# return true
+	end
+
+
+
+	def delete_lines(num:, y:)
+		num.times {	|n| document.remove_line(y: y + n) }
 	end
 
 	def keystack_pop
@@ -74,7 +125,15 @@ module HasKeyboard
 
 	def process_keys
 		key = keystack.pop
+	end
 
+	def integer?(key:)
+		begin
+			Integer(key, 10)
+		rescue ArgumentError
+			return false
+		end
+		return true
 	end
 
 	def add_key(key:)
