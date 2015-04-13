@@ -5,7 +5,7 @@ module HasCursor
 		when :command then 
 			self.cursor.x = 0
 			self.cursor.y = self.height - 1
-		when :normal then 
+		when :normal, :master then 
 			self.cursor.x = self.margin_left_width
 			self.cursor.y = header.lines.count
 		end
@@ -21,14 +21,14 @@ module HasCursor
 
 	def limit_max_x
 		case self.mode
-			when :normal  then self.margin_left_width + self.document.width(self.cursor.y - header.lines.count + self.document_y_offset)
+			when :normal, :master  then self.margin_left_width + self.document.width(self.cursor.y - header.lines.count + self.document_y_offset)
 			when :command then self.width - 1
 		end
 	end
 
 	def limit_max_y
 		case self.mode
-			when :normal  then 
+			when :normal, :master  then 
 				if self.document.height > body_height then
 					body_height + self.header.lines.count - 1
 				else
@@ -40,7 +40,7 @@ module HasCursor
 
 	def limit_min_y
 		case mode
-			when :normal then header.lines.count
+			when :normal, :master then header.lines.count
 			when :command then height - 1
 		end
 	end

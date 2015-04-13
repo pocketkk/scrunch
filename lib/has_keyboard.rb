@@ -1,62 +1,93 @@
+# VIM COMMANDS
+# 0   move to beginning of line
+# $   move to end of line
+# ^   move to first non-blank char of the line
+# _   same as above, but can take a count to go to a different line
+# g_  move to last non-blank char of the line (can also take a count as above)
+
+# gg  move to first line
+# G   move to last line
+# nG  move to n'th line of file (where n is a number)
+
+# H   move to top of screen
+# M   move to middle of screen
+# L   move to bottom of screen
+
+# z.  put the line with the cursor at the center
+# zt  put the line with the cursor at the top
+# zb  put the line with the cursor at the bottom of the screen
+
+# Ctrl-D  move half-page down
+# Ctrl-U  move half-page up
+# Ctrl-B  page up
+# Ctrl-F  page down
+# Ctrl-o  jump to last cursor position
+# Ctrl-i  jump to next cursor position
+
+# n   next matching search pattern
+# N   previous matching search pattern
+# *   next word under cursor
+# #   previous word under cursor
+# g*  next matching search pattern under cursor
+# g#  previous matching search pattern under cursor
+
+# %   jump to matching bracket { } [ ] ( )
+
 module HasKeyboard
 
-	attr_accessor :ctrl, :letter
+	attr_accessor :ctrl, :letter, :keystack
 
-	def process_key(mode:, key:)
+	def initialize
+		super
+	end
+
+
+	def process_key_command(key:)
+		common_keys(key: key)	
+	end
+
+	EXECUTE_KEYS = %w[h i j k i]
+
+	def process_key_master(key:)
+		common_keys(key: key)
 		case key
-			when :down 			then down
-			when :up 			then up
-			when :right 		then 
-				cursor.right
+			when "h", :left		then
+				cursor.left(keystack_pop)
 				return false
-			when :left 			then 
-				cursor.left
+			when "l", :right	then 
+				cursor.right(keystack_pop)
 				return false
-			when :page_down		then page_down
-			when :page_up		then page_up
-			when :backspace     then
-				if cursor.x > margin_left_width
-					cursor.left
-					document.remove(x: document_x, y: document_y)
-				elsif document_y - document_y_offset > 0
-					char_count_line_above = self.document.lines(from: document_y - 1, to: document_y - 1).join('').chars.count
-					document.remove(x: char_count_line_above - 1, y: document_y - 1)
-					cursor.up
-					cursor.right(char_count_line_above)
-				elsif cursor.x == 0 && cursor.y == 1
-					char_count_line_above = document.lines(from: document_y - 1, to: document_y - 1).join('').chars.count
-					document.remove(x: char_count_line_above - 1, y: document_y - 1)
-					document_y_offset -= 1
-					cursor.right(char_count_line_above)
-				end
-			when :delete		then document.remove(x: document_x, y: document_y)
-			when :tab 			then 4.times { process_key(mode: mode, key: :space) } 
-			when :"Shift+tab" 	then cursor.left(4)
+			when "j", :up		then up
+			when "k", :down		then down
+			when "i" 			then self.mode = :normal
+			else add_key(key: key)
+		end
+		return true
+	end
+
+	def keystack_pop
+		self.keystack ||= Array.new
+		num = self.keystack.pop.to_i if self.keystack.count > 0
+		self.keystack = []
+		num ? num : 1
+	end
+
+	def process_keys
+		key = keystack.pop
+
+	end
+
+	def add_key(key:)
+		self.keystack ||= Array.new
+		self.keystack << key
+	end
+
+	def common_keys(key:)
+		case key
 			when :escape		then change_mode
 			when :"Ctrl+q"	    then quit_program
 			when :"Ctrl+s"		then document.save
-			else add_key_to_document(key)
 		end
-		true
-	end
-
-	def process_key_command(key:)
-
-	end
-
-	def process_key_normal(key:)
-		case key
-			when :j			then 
-				cursor.left
-				return false 
-			when :k			then 
-				cursor.right
-				return false
-			when :i			then up
-			when :n			then down
-			when :"Ctrl+q"	    then quit_program
-		end
-		return true
 	end
 
 	def process_key(key:)

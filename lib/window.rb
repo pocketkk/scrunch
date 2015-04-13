@@ -120,12 +120,11 @@ class Window
 	end
 
 	def footer
-		case self.mode
-		when :command
-			"#{mode.to_s.upcase}    #{"#### #{self.message} ####" if self.message}\n\n\n"
-		else
-			"#{mode.to_s.upcase}    #{"#### #{self.message} ####" if self.message}\n\n"
-		end
+		footer_text = Array.new(width) {" "}
+		footer_text[0..mode.to_s.chars.count-1] = mode.to_s.upcase.chars
+		footer_text[width - message.chars.count..width - 1] = message.chars if message
+		footer_text << "\n\n" if mode == :command
+		footer_text.join('')
 	end
 
 	def get_window_size
@@ -185,10 +184,14 @@ class Window
 
 	def change_mode
 		case mode
-			when :command then self.mode = :normal
-			when :normal  then self.mode = :command
+			when :command then 
+				self.mode = :normal
+				set_cursor
+			when :normal  then self.mode = :master
+			when :master  then 
+				self.mode = :command
+				set_cursor
 		end
-		set_cursor
 	end
 
 	def quit_program
@@ -204,9 +207,21 @@ class Window
 	      Dispel::Keyboard.output do |key|
 	      	break if key == :"Ctrl+b"
 	      	self.time_start = Time.now
-	        if process_key(key: key) then
-	        	buffer = render
-	        end
+	      	case mode
+	      	when :normal then
+		        if process_key(key: key) then
+		        	buffer = render
+		        end
+		    when :command then
+		    	if process_key_command(key: key) then
+		    		buffer = render
+		    	end
+			when :master then
+				if process_key_master(key: key) then
+					buffer = render
+				end
+			end
+
 	        process_messages
 	        screen.draw buffer, map, [cursor.y, cursor.x]
 	        self.time_refresh += Time.now - self.time_start
