@@ -41,79 +41,85 @@ module HasKeyboard
 		super
 	end
 
-
 	def process_key_command(key:)
 		common_keys(key: key)	
 	end
 
-	EXECUTE_KEYS = %w[h i j k i]
+	EXECUTE_KEYS = %w[l h j k t b i m 0 -]
 	COMMAND_KEYS = %w[d]
+	OR_KEYS = EXECUTE_KEYS.join('|')
+	A_NUM = '[1-9]'
 
-	DELETE 					= /((?<=^)dd(?=$))/
+	DELETE_LINE 			= /((?<=^)dd(?=$))/
 	DELETE_X_LINES_DOWN 	= /((?<=^)d([1-9])k(?=$))/
 	DELETE_X_LINES_UP 		= /((?<=^)d([1-9])j(?=$))/
 	DELETE_X_CHARS_RIGHT 	= /((?<=^)d([1-9])l(?=$))/
 	DELETE_X_CHARS_LEFT 	= /((?<=^)d([1-9])h(?=$))/
 
+	COMMANDS_SINGLETON		= /((?<=^)(#{OR_KEYS})(?=$))/
+	COMMANDS_DOUBLETON		= /((?<=^)(#{A_NUM})(#{OR_KEYS})(?=$))/
+	
 	def process_key_master(key:)
 		self.keystack ||= Array.new
 		if self.keystack.count > 3 then
 			self.keystack = Array.new
 		end
 
-		common_keys(key: key)
-		add_key(key: key)
+		if common_keys(key: key) then 
+			return true
+		end
 
-		if keystack.join('').match(DELETE)
+		add_key(key: key)
+		keys = keystack.join('')
+
+		if match = keys.match(COMMANDS_SINGLETON)
+			case match.to_a[2]
+			when "l" then cursor.right
+			when "h" then cursor.left
+			when "j" then up
+			when "k" then down
+			when "t" then cursor.y = header.lines.count
+			when "b" then cursor.y = document.text.lines.count > body_height ? body_height : document.text.lines.count
+			when "m" then cursor.y = document.text.lines.count > body_height ? body_height / 2 : document.text.lines.count / 2
+			when "0" then cursor.x = (cursor.x - document_x).times { cursor.left }
+			when "-" then cursor.x = limit_max_x
+			when "i" then self.mode = :normal
+			end
+			self.keystack = Array.new
+		end
+
+		if match = keys.match(COMMANDS_DOUBLETON)
+			num = match.to_a[2].to_i
+			case match.to_a[3]
+			when "l" then cursor.right(num)
+			when "h" then cursor.left(num)
+			when "j" then num.times { self.up }
+			when "k" then num.times { self.down }
+			end
+			self.keystack = Array.new
+		end
+
+		if keys.match(DELETE_LINE)
 			delete_lines(num: 1, y: document_y)
 			self.keystack = []
 		end
-		if match = keystack.join('').match(DELETE_X_LINES_DOWN)
+
+		if match = keys.match(DELETE_X_LINES_DOWN)
 			delete_lines(num: match.to_a[2].to_i, y: document_y)
 			self.keystack = []
 		end
+
+		if match = keys.match(DELETE_X_LINES_UP)
+			delete_lines(num: match.to_a[2].to_i, y: document_y - match.to_a[2].to_i)
+			cursor.y = document_y - match.to_a[2].to_i
+			self.keystack = []
+		end
+
 		return true
-		# case key
-		# 	when "h", :left		then
-		# 		cursor.left(keystack_pop)
-		# 		return false
-		# 	when "l", :right	then 
-		# 		cursor.right(keystack_pop)
-		# 		return false
-		# 	when "j", :up		then
-		# 		if self.keystack.count == 0
-		# 			up
-		# 		else
-		# 			add_key(key: key)
-		# 			if keystack && keystack.count > 1 then
-		# 				keystack_process
-		# 			end
-		# 		end
-		# 	when "k", :down		then
-		# 		self.keystack ||= Array.new
-		# 		if self.keystack.count == 0
-		# 			down
-		# 		else
-		# 			add_key(key: key)
-		# 			if keystack && keystack.count > 1 then
-		# 				keystack_process
-		# 			end
-		# 		end
-		# 	when "i" 			then self.mode = :normal
-		# 	when "d"			then 
-		# 		 add_key(key: key)
-		# 		 if keystack && keystack.count > 1 then
-		# 		 	keystack_process
-		# 		end
-		# 	else add_key(key: key)
-		# end
-		# return true
 	end
 
-
-
 	def delete_lines(num:, y:)
-		num.times {	|n| document.remove_line(y: y + n) }
+		num.times {	|n| document.remove_line(y: y) }
 	end
 
 	def keystack_pop
@@ -143,9 +149,21 @@ module HasKeyboard
 
 	def common_keys(key:)
 		case key
+			when :down 			then down
+			when :up 			then up
+			when :right 		then 
+				cursor.right
+				return false
+			when :left 			then 
+				cursor.left
+				return false
+			when :page_down		then page_down
+			when :page_up		then page_up
 			when :escape		then change_mode
 			when :"Ctrl+q"	    then quit_program
 			when :"Ctrl+s"		then document.save
+			else
+				return false
 		end
 	end
 
