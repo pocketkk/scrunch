@@ -20,7 +20,7 @@ class Window
 
 	attr_accessor :width, :height, :mode, :cursor, :document, :buffer, :arguments, :command, :keywords,
 				  :document_y_offset, :document_x_offset, :margin_left_width, :border_width, :decorations,
-				  :time_refresh, :time_start, :time_count, :time_average, :message
+				  :time_refresh, :time_start, :time_count, :time_average, :message, :match
 
 	def self.test
 		Window.new(Document.test_doc)
@@ -31,6 +31,7 @@ class Window
 		@width = 0
 		@flash_max = 4
 		@flash_period = 0
+		@keystack = Array.new
 		@mode = :normal
 		self.command = :edit
 		@document_y_offset = 0
@@ -60,7 +61,7 @@ class Window
 	def header
 		temp = align_right(show_cursor_pos, absolute: true) + "\n"
 		temp[0..document.file_name.chars.count + 7] = "FILE: #{document.file_name}" unless document.file_name.empty?
-		temp[document.file_name.chars.count + 7..document.file_name.chars.count + 18] = " AVG MS: #{average_time.round(4)}"
+		temp[document.file_name.chars.count + 7..document.file_name.chars.count + 30] = " AVG MS: #{average_time.round(4)} KEYSTACK: #{self.keystack.join''}"
 		temp
 	end
 

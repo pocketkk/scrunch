@@ -1,5 +1,5 @@
 # VIM COMMANDS
-# 0   move to beginning of line
+## 0   move to beginning of line 
 # $   move to end of line
 # ^   move to first non-blank char of the line
 # _   same as above, but can take a count to go to a different line
@@ -45,7 +45,7 @@ module HasKeyboard
 		common_keys(key: key)	
 	end
 
-	EXECUTE_KEYS = %w[l h j k t b i m 0 -]
+	EXECUTE_KEYS = %w[l h j k t b i m 0 - G \* #]
 	COMMAND_KEYS = %w[d]
 	OR_KEYS = EXECUTE_KEYS.join('|')
 	A_NUM = '[1-9]'
@@ -56,12 +56,18 @@ module HasKeyboard
 	DELETE_X_CHARS_RIGHT 	= /((?<=^)d([1-9])l(?=$))/
 	DELETE_X_CHARS_LEFT 	= /((?<=^)d([1-9])h(?=$))/
 
+	GOTO_FIRST_LINE     	= /((?<=^)gg(?=$))/
+
 	COMMANDS_SINGLETON		= /((?<=^)(#{OR_KEYS})(?=$))/
 	COMMANDS_DOUBLETON		= /((?<=^)(#{A_NUM})(#{OR_KEYS})(?=$))/
+
+	NEXT_WORD				= /(\b.)/
 	
 	def process_key_master(key:)
 		self.keystack ||= Array.new
-		if self.keystack.count > 3 then
+		match = nil
+
+		if self.keystack.count > 2 then
 			self.keystack = Array.new
 		end
 
@@ -81,9 +87,17 @@ module HasKeyboard
 			when "t" then cursor.y = header.lines.count
 			when "b" then cursor.y = document.text.lines.count > body_height ? body_height : document.text.lines.count
 			when "m" then cursor.y = document.text.lines.count > body_height ? body_height / 2 : document.text.lines.count / 2
-			when "0" then cursor.x = (cursor.x - document_x).times { cursor.left }
+			when "0" then (cursor.x - document_x).times { cursor.left }
 			when "-" then cursor.x = limit_max_x
 			when "i" then self.mode = :normal
+			when "G" then 
+				until cursor_at_bottom? && !lines_below? do
+					down
+				end
+			when "*" then 
+				cursor.x = first_position(string: document.line(num: document_y), pattern: NEXT_WORD) + limit_min_x + 1
+			when "#" then
+				cursor.x = previous_word(string: document.line(num: document_y), pattern: NEXT_WORD) + limit_min_x
 			end
 			self.keystack = Array.new
 		end
@@ -95,26 +109,49 @@ module HasKeyboard
 			when "h" then cursor.left(num)
 			when "j" then num.times { self.up }
 			when "k" then num.times { self.down }
+			when "G" then
+
 			end
 			self.keystack = Array.new
 		end
 
+		if keys.match(GOTO_FIRST_LINE)
+			until cursor_at_top? && !lines_above? do
+				up
+			end
+			self.keystack = Array.new
+		end
+
+
 		if keys.match(DELETE_LINE)
 			delete_lines(num: 1, y: document_y)
-			self.keystack = []
+			self.keystack = Array.new
 		end
 
 		if match = keys.match(DELETE_X_LINES_DOWN)
 			delete_lines(num: match.to_a[2].to_i, y: document_y)
-			self.keystack = []
+			self.keystack = Array.new
 		end
 
 		if match = keys.match(DELETE_X_LINES_UP)
 			delete_lines(num: match.to_a[2].to_i, y: document_y - match.to_a[2].to_i)
 			cursor.y = document_y - match.to_a[2].to_i
-			self.keystack = []
+			self.keystack = Array.new
 		end
 
+		if match = keys.match(DELETE_X_CHARS_RIGHT)
+			match.to_a[2].to_i.times { document.remove(x: document_x, y: document_y) }
+			self.keystack = Array.new
+		end
+
+		if match = keys.match(DELETE_X_CHARS_LEFT)
+			match.to_a[2].to_i.times do 
+				document.remove(x: document_x - 1, y: document_y) 
+				cursor.left
+			end
+			self.keystack = Array.new
+		end
+		
 		return true
 	end
 
@@ -237,6 +274,17 @@ module HasKeyboard
 		else
 			self.cursor.down
 		end
+	end
+
+	def bottom
+		num = cursor.y
+		doc_y_offset = document_y_offset
+
+	end
+
+	def wrap_command
+		yield
+		keystack = []
 	end
 
 	def page_down 

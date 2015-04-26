@@ -50,6 +50,19 @@ module Patterns
 		string.enum_for(:scan, pattern).map { $~.offset(0) }
 	end
 
+	def first_position(pattern:, string:)
+		positions(pattern: pattern, string: string).each do |pair|
+			return pair[0] if pair[0] > document_x + 1
+		end
+		document_x - 1
+	end
+
+	def previous_word(pattern:, string:)
+		positions(pattern: pattern, string: string).reverse.each do |pair|
+			return pair[0] if pair[0] < document_x - 1
+		end
+	end
+
 	def pattern_keywords
 		@pattern_keywords ||= KEYWORDS
 	end
